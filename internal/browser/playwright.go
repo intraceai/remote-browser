@@ -33,8 +33,11 @@ func New() (*Browser, error) {
 		return nil, fmt.Errorf("could not start playwright: %w", err)
 	}
 
+	execPath := "/usr/bin/chromium-browser"
+
 	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
-		Headless: playwright.Bool(false),
+		Headless:       playwright.Bool(false),
+		ExecutablePath: playwright.String(execPath),
 		Args: []string{
 			"--no-sandbox",
 			"--disable-setuid-sandbox",

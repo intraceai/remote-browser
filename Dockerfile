@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y \
     x11vnc \
     supervisor \
     wget \
+    curl \
     gnupg \
     ca-certificates \
     fonts-liberation \
@@ -41,23 +42,19 @@ RUN apt-get update && apt-get install -y \
     git \
     python3 \
     python3-numpy \
+    chromium-browser \
     && rm -rf /var/lib/apt/lists/*
 
 RUN git clone https://github.com/novnc/noVNC.git /opt/novnc \
     && git clone https://github.com/novnc/websockify /opt/novnc/utils/websockify
 
-RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg \
-    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable \
-    && rm -rf /var/lib/apt/lists/*
+ENV PLAYWRIGHT_BROWSERS_PATH=/browsers
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 WORKDIR /app
 
 COPY --from=builder /app/agent .
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-RUN ./agent -version 2>/dev/null || true
 
 EXPOSE 5900 6080 8082
 
