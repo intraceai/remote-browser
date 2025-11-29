@@ -7,20 +7,17 @@ import (
 	"syscall"
 
 	"github.com/intraceai/remote-browser/internal/api"
-	"github.com/intraceai/remote-browser/internal/browser"
 )
 
 func main() {
 	listenAddr := getEnv("LISTEN_ADDR", ":8082")
 
-	log.Println("Starting browser...")
-	b, err := browser.New()
+	log.Println("Starting browser agent...")
+	server, err := api.NewServer()
 	if err != nil {
-		log.Fatalf("Failed to start browser: %v", err)
+		log.Fatalf("Failed to create server: %v", err)
 	}
-	defer b.Close()
-
-	server := api.NewServer(b)
+	defer server.Close()
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
@@ -28,11 +25,11 @@ func main() {
 	go func() {
 		<-sigChan
 		log.Println("Shutting down...")
-		b.Close()
+		server.Close()
 		os.Exit(0)
 	}()
 
-	log.Printf("Starting agent server on %s", listenAddr)
+	log.Printf("Agent listening on %s", listenAddr)
 	if err := server.Run(listenAddr); err != nil {
 		log.Fatalf("Server error: %v", err)
 	}
